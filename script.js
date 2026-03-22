@@ -1,221 +1,374 @@
-// Aurum Messenger - Telegram стиль
+// Импорт Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, setDoc, getDoc, getDocs, where, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-let appData = {
-    currentUser: 'Алексей',
-    currentChat: null,
-    theme: 'light',
-    chats: [],
-    messages: {},
-    contacts: []
+// Firebase конфигурация
+const firebaseConfig = {
+    apiKey: "AIzaSyA19cg9dvbo_2t59pNmEC5Hm7Ryj9hjQb0",
+    authDomain: "aurum-e244a.firebaseapp.com",
+    projectId: "aurum-e244a",
+    storageBucket: "aurum-e244a.firebasestorage.app",
+    messagingSenderId: "403538033504",
+    appId: "1:403538033504:web:dde02304b4665f0fe1bc05",
+    measurementId: "G-LLGHJN78V3"
 };
 
-function loadData() {
-    const saved = localStorage.getItem('aurum_data');
-    if (saved) {
-        appData = JSON.parse(saved);
-        applyTheme(appData.theme);
-        document.getElementById('userName').textContent = appData.currentUser;
-        document.getElementById('profileName').textContent = appData.currentUser;
-        document.getElementById('profileNameInput').value = appData.currentUser;
+// Инициализация
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Переменные
+let currentUser = null;
+let currentChat = null;
+let currentContact = null;
+let unsubscribeMessages = null;
+
+// DOM элементы
+const authScreen = document.getElementById('authScreen');
+const mainScreen = document.getElementById('mainScreen');
+const userNameSpan = document.getElementById('userName');
+const profileNameSpan = document.getElementById('profileName');
+const chatsList = document.getElementById('chatsList');
+const messagesContainer = document.getElementById('messages');
+const messageInput = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const chatNameSpan = document.getElementById('chatName');
+const chatAvatar = document.getElementById('chatAvatar');
+const contactsList = document.getElementById('contactsList');
+
+// Авторизация
+document.getElementById('loginBtn')?.addEventListener('click', async () => {
+    const email = document.getElementById('loginPhone').value;
+    const password = document.getElementById('loginPassword').value;
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+        alert('Ошибка входа: ' + error.message);
+    }
+});
+
+document.getElementById('registerBtn')?.addEventListener('click', async () => {
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regPhone').value;
+    const password = document.getElementById('regPassword').value;
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(userCredential.user, { displayName: name });
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+            uid: userCredential.user.uid,
+            name: name,
+            phone: email,
+            avatar: '👤',
+            contacts: [],
+            createdAt: Date.now()
+        });
+    } catch (error) {
+        alert('Ошибка регистрации: ' + error.message);
+    }
+});
+
+// Состояние авторизации
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        currentUser = user;
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userData = userDoc.data();
+        userNameSpan.textContent = userData?.name || user.displayName;
+        profileNameSpan.textContent = userData?.name || user.displayName;
+        document.getElementById('editName').value = userData?.name || '';
+        
+        authScreen.style.display = 'none';
+        mainScreen.style.display = 'flex';
+        loadChats();
+        loadContacts();
     } else {
-        appData.chats = [
-            { id: '1', name: 'Анна', avatar: '👩', lastMessage: 'Привет! Как дела?', timestamp: Date.now() },
-            { id: '2', name: 'Максим', avatar: '👨', lastMessage: 'Скинь фото', timestamp: Date.now() - 3600000 },
-            { id: '3', name: 'Елена', avatar: '👩‍💼', lastMessage: 'Встреча в 15:00', timestamp: Date.now() - 7200000 }
-        ];
-        appData.messages = {
-            '1': [
-                { id: 'm1', text: 'Привет! Как дела?', sender: 'incoming', time: Date.now() - 3600000 },
-                { id: 'm2', text: 'Привет! Всё отлично!', sender: 'outgoing', time: Date.now() - 3500000 }
-            ],
-            '2': [
-                { id: 'm3', text: 'Привет!', sender: 'incoming', time: Date.now() - 7200000 }
-            ],
-            '3': [
-                { id: 'm4', text: 'Доброе утро!', sender: 'incoming', time: Date.now() - 86400000 }
-            ]
-        };
-        appData.contacts = [
-            { id: 'c1', name: 'Анна', avatar: '👩', status: 'online' },
-            { id: 'c2', name: 'Максим', avatar: '👨', status: 'был недавно' },
-            { id: 'c3', name: 'Елена', avatar: '👩‍💼', status: 'была вчера' }
-        ];
-        saveData();
+        authScreen.style.display = 'flex';
+        mainScreen.style.display = 'none';
+        if (unsubscribeMessages) unsubscribeMessages();
     }
-    renderChatsList();
-    renderContactsList();
-}
+});
 
-function saveData() {
-    localStorage.setItem('aurum_data', JSON.stringify(appData));
-}
-
-function applyTheme(theme) {
-    document.body.className = theme;
-    appData.theme = theme;
-    const themeLabel = document.getElementById('themeLabel');
-    if (themeLabel) {
-        themeLabel.textContent = theme === 'light' ? 'Светлая тема' : 'Тёмная тема';
-    }
-    saveData();
-}
-
-function formatTime(timestamp) {
-    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-}
-
-function formatDate(timestamp) {
-    const date = new Date(timestamp);
-    const today = new Date();
-    if (date.toDateString() === today.toDateString()) {
-        return formatTime(timestamp);
-    }
-    return date.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
-}
-
-function renderChatsList() {
-    const container = document.getElementById('chatsList');
-    if (!container) return;
+// Загрузка чатов
+async function loadChats() {
+    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+    const userData = userDoc.data();
+    const chatIds = userData?.chats || [];
     
-    container.innerHTML = appData.chats.map(chat => {
-        const messages = appData.messages[chat.id] || [];
-        const lastMsg = messages[messages.length - 1];
-        return `
-            <div class="chat-item" data-chat-id="${chat.id}">
-                <div class="chat-avatar">${chat.avatar}</div>
-                <div class="chat-info">
-                    <div class="chat-name">${escapeHtml(chat.name)}</div>
-                    <div class="chat-last-message">${lastMsg ? escapeHtml(lastMsg.text) : 'Нет сообщений'}</div>
-                </div>
-                <div class="chat-time">${lastMsg ? formatDate(lastMsg.time) : ''}</div>
-            </div>
-        `;
-    }).join('');
+    chatsList.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">Загрузка...</div>';
     
-    document.querySelectorAll('.chat-item').forEach(el => {
-        el.addEventListener('click', () => openChat(el.dataset.chatId));
-    });
-}
-
-function renderContactsList() {
-    const container = document.getElementById('contactsList');
-    if (!container) return;
-    
-    container.innerHTML = appData.contacts.map(contact => `
-        <div class="contact-item">
-            <div class="contact-avatar">${contact.avatar}</div>
-            <div class="contact-info">
-                <div class="contact-name">${escapeHtml(contact.name)}</div>
-                <div class="contact-status">${contact.status}</div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function openChat(chatId) {
-    appData.currentChat = chatId;
-    const chat = appData.chats.find(c => c.id === chatId);
-    if (chat) {
-        document.getElementById('chatHeaderAvatar').innerHTML = chat.avatar;
-        document.getElementById('chatHeaderName').textContent = chat.name;
-        document.getElementById('chatHeaderStatus').innerHTML = '<span style="color:#4caf50">●</span> в сети';
-    }
-    renderMessages();
-    
-    document.querySelector('.chats-screen').classList.remove('active');
-    document.querySelector('.chat-screen').classList.add('active');
-}
-
-function renderMessages() {
-    const container = document.getElementById('messages');
-    const messages = appData.messages[appData.currentChat] || [];
-    
-    if (messages.length === 0) {
-        container.innerHTML = '<div class="empty-chat"><i class="fas fa-comments"></i><p>Нет сообщений</p></div>';
+    if (chatIds.length === 0) {
+        chatsList.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">Нет чатов. Начните общение!</div>';
         return;
     }
     
-    container.innerHTML = messages.map(msg => `
-        <div class="message message-${msg.sender}">
-            <div class="message-text">${escapeHtml(msg.text)}</div>
-            <div class="message-time">${formatTime(msg.time)}</div>
-        </div>
-    `).join('');
-    
-    const messagesContainer = document.getElementById('messagesContainer');
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const text = input.value.trim();
-    
-    if (!text || !appData.currentChat) return;
-    
-    const newMessage = {
-        id: Date.now().toString(),
-        text: text,
-        sender: 'outgoing',
-        time: Date.now()
-    };
-    
-    if (!appData.messages[appData.currentChat]) {
-        appData.messages[appData.currentChat] = [];
-    }
-    appData.messages[appData.currentChat].push(newMessage);
-    
-    const chat = appData.chats.find(c => c.id === appData.currentChat);
-    if (chat) {
-        chat.lastMessage = text;
-        chat.timestamp = Date.now();
-    }
-    
-    saveData();
-    renderMessages();
-    renderChatsList();
-    input.value = '';
-    
-    // Автоответ
-    setTimeout(() => {
-        if (appData.currentChat) {
-            const reply = {
-                id: Date.now().toString(),
-                text: 'Сообщение доставлено ✨',
-                sender: 'incoming',
-                time: Date.now()
-            };
-            appData.messages[appData.currentChat].push(reply);
-            saveData();
-            renderMessages();
-            renderChatsList();
+    let chatsHtml = '';
+    for (const chatId of chatIds) {
+        const chatDoc = await getDoc(doc(db, 'chats', chatId));
+        if (chatDoc.exists()) {
+            const chat = chatDoc.data();
+            const otherId = chat.participants.find(id => id !== currentUser.uid);
+            const otherUser = await getDoc(doc(db, 'users', otherId));
+            const otherData = otherUser.data();
+            
+            const lastMsg = chat.lastMessage || '';
+            const lastTime = chat.lastTime ? new Date(chat.lastTime).toLocaleTimeString() : '';
+            
+            chatsHtml += `
+                <div class="chat-item" data-chat-id="${chatId}" data-user-id="${otherId}">
+                    <div class="chat-avatar">${otherData?.avatar || '👤'}</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${otherData?.name || 'Пользователь'}</div>
+                        <div class="chat-last-message">${lastMsg.substring(0, 30) || 'Нет сообщений'}</div>
+                    </div>
+                    <div class="chat-time">${lastTime}</div>
+                </div>
+            `;
         }
-    }, 1000);
+    }
+    
+    chatsList.innerHTML = chatsHtml;
+    document.querySelectorAll('.chat-item').forEach(el => {
+        el.addEventListener('click', () => openChat(el.dataset.chatId, el.dataset.userId));
+    });
 }
 
-function createNewChat() {
-    const name = document.getElementById('newChatName').value.trim();
-    if (!name) return;
+// Открыть чат
+async function openChat(chatId, userId) {
+    currentChat = chatId;
+    currentContact = userId;
     
-    const selectedAvatar = document.querySelector('.avatar-opt.selected');
-    const avatar = selectedAvatar ? selectedAvatar.dataset.emoji : '👤';
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    const userData = userDoc.data();
+    chatNameSpan.textContent = userData?.name || 'Пользователь';
+    chatAvatar.innerHTML = userData?.avatar || '👤';
     
-    const newChat = {
-        id: Date.now().toString(),
-        name: name,
-        avatar: avatar,
-        lastMessage: '',
-        timestamp: Date.now()
-    };
+    document.getElementById('chatsPanel').style.display = 'none';
+    document.getElementById('chatPanel').style.display = 'flex';
     
-    appData.chats.unshift(newChat);
-    appData.messages[newChat.id] = [];
-    saveData();
-    renderChatsList();
+    if (unsubscribeMessages) unsubscribeMessages();
     
-    document.getElementById('newChatModal').classList.remove('active');
-    document.getElementById('newChatName').value = '';
-    openChat(newChat.id);
+    const messagesQuery = query(collection(db, 'chats', chatId, 'messages'), orderBy('time', 'asc'));
+    unsubscribeMessages = onSnapshot(messagesQuery, (snapshot) => {
+        messagesContainer.innerHTML = '';
+        snapshot.forEach(doc => {
+            const msg = doc.data();
+            const isOutgoing = msg.senderId === currentUser.uid;
+            messagesContainer.innerHTML += `
+                <div class="message message-${isOutgoing ? 'outgoing' : 'incoming'}">
+                    <div class="message-text">${escapeHtml(msg.text)}</div>
+                    <div class="message-time">${new Date(msg.time).toLocaleTimeString()}</div>
+                </div>
+            `;
+        });
+        const container = document.getElementById('messagesContainer');
+        container.scrollTop = container.scrollHeight;
+    });
 }
+
+// Отправить сообщение
+sendBtn?.addEventListener('click', async () => {
+    const text = messageInput.value.trim();
+    if (!text || !currentChat) return;
+    
+    await addDoc(collection(db, 'chats', currentChat, 'messages'), {
+        text: text,
+        senderId: currentUser.uid,
+        time: Date.now()
+    });
+    
+    await updateDoc(doc(db, 'chats', currentChat), {
+        lastMessage: text,
+        lastTime: Date.now()
+    });
+    
+    messageInput.value = '';
+});
+
+messageInput?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendBtn.click();
+});
+
+// Загрузка контактов
+async function loadContacts() {
+    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+    const userData = userDoc.data();
+    const contactIds = userData?.contacts || [];
+    
+    if (contactIds.length === 0) {
+        contactsList.innerHTML = '<div style="padding:20px;text-align:center;color:#888;">Нет контактов</div>';
+        return;
+    }
+    
+    let contactsHtml = '';
+    for (const contactId of contactIds) {
+        const contactDoc = await getDoc(doc(db, 'users', contactId));
+        if (contactDoc.exists()) {
+            const contact = contactDoc.data();
+            contactsHtml += `
+                <div class="contact-item" data-user-id="${contactId}">
+                    <div class="contact-avatar">${contact.avatar || '👤'}</div>
+                    <div class="contact-info">
+                        <div class="contact-name">${contact.name}</div>
+                        <div class="contact-status">${contact.phone || ''}</div>
+                    </div>
+                    <button class="icon-btn message-contact"><i class="fas fa-comment"></i></button>
+                </div>
+            `;
+        }
+    }
+    
+    contactsList.innerHTML = contactsHtml;
+    document.querySelectorAll('.contact-item').forEach(el => {
+        el.addEventListener('click', async () => {
+            const userId = el.dataset.userId;
+            await startChatWithUser(userId);
+        });
+    });
+}
+
+// Начать чат с пользователем
+async function startChatWithUser(userId) {
+    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+    const userData = userDoc.data();
+    let chatId = userData.chats?.find(chatId => {
+        // Найти существующий чат
+        return false;
+    });
+    
+    if (!chatId) {
+        chatId = Date.now().toString();
+        await setDoc(doc(db, 'chats', chatId), {
+            participants: [currentUser.uid, userId],
+            createdAt: Date.now(),
+            lastMessage: '',
+            lastTime: null
+        });
+        
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+            chats: arrayUnion(chatId)
+        });
+        await updateDoc(doc(db, 'users', userId), {
+            chats: arrayUnion(chatId)
+        });
+    }
+    
+    openChat(chatId, userId);
+}
+
+// Поиск пользователя
+document.getElementById('newChatBtn')?.addEventListener('click', () => {
+    document.getElementById('searchPanel').style.display = 'block';
+    document.getElementById('chatsPanel').style.display = 'none';
+});
+
+document.getElementById('closeSearch')?.addEventListener('click', () => {
+    document.getElementById('searchPanel').style.display = 'none';
+    document.getElementById('chatsPanel').style.display = 'block';
+});
+
+document.getElementById('findUserBtn')?.addEventListener('click', async () => {
+    const phone = document.getElementById('contactPhone').value;
+    const usersQuery = query(collection(db, 'users'), where('phone', '==', phone));
+    const snapshot = await getDocs(usersQuery);
+    const foundDiv = document.getElementById('foundUser');
+    
+    if (snapshot.empty) {
+        foundDiv.innerHTML = '<p style="color:red;">Пользователь не найден</p>';
+    } else {
+        snapshot.forEach(doc => {
+            const user = doc.data();
+            foundDiv.innerHTML = `
+                <div style="padding:10px;border:1px solid #ccc;border-radius:8px;margin:10px 0;">
+                    <div>${user.name}</div>
+                    <div>${user.phone}</div>
+                    <button id="addThisContact" data-id="${doc.id}">Добавить в контакты</button>
+                </div>
+            `;
+            document.getElementById('addThisContact')?.addEventListener('click', async () => {
+                await updateDoc(doc(db, 'users', currentUser.uid), {
+                    contacts: arrayUnion(doc.id)
+                });
+                alert('Контакт добавлен!');
+                document.getElementById('newChatModal').classList.remove('active');
+                loadContacts();
+            });
+        });
+    }
+});
+
+// Навигация по панелям
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const panel = btn.dataset.panel;
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        document.getElementById('chatsPanel').style.display = 'none';
+        document.getElementById('chatPanel').style.display = 'none';
+        document.getElementById('contactsPanel').style.display = 'none';
+        document.getElementById('settingsPanel').style.display = 'none';
+        
+        if (panel === 'chats') {
+            document.getElementById('chatsPanel').style.display = 'block';
+        } else if (panel === 'contacts') {
+            document.getElementById('contactsPanel').style.display = 'block';
+            loadContacts();
+        } else if (panel === 'settings') {
+            document.getElementById('settingsPanel').style.display = 'block';
+        }
+    });
+});
+
+document.getElementById('backToChats')?.addEventListener('click', () => {
+    document.getElementById('chatPanel').style.display = 'none';
+    document.getElementById('chatsPanel').style.display = 'block';
+    if (unsubscribeMessages) unsubscribeMessages();
+});
+
+document.getElementById('editProfileBtn')?.addEventListener('click', () => {
+    document.getElementById('profileModal').classList.add('active');
+});
+
+document.getElementById('saveNameBtn')?.addEventListener('click', async () => {
+    const newName = document.getElementById('editName').value;
+    if (newName && currentUser) {
+        await updateProfile(currentUser, { displayName: newName });
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+            name: newName
+        });
+        userNameSpan.textContent = newName;
+        profileNameSpan.textContent = newName;
+        document.getElementById('profileModal').classList.remove('active');
+    }
+});
+
+document.getElementById('logoutBtn')?.addEventListener('click', async () => {
+    await signOut(auth);
+});
+
+document.getElementById('themeItem')?.addEventListener('click', () => {
+    const body = document.body;
+    if (body.classList.contains('dark')) {
+        body.classList.remove('dark');
+        document.getElementById('themeValue').textContent = 'Светлая';
+    } else {
+        body.classList.add('dark');
+        document.getElementById('themeValue').textContent = 'Тёмная';
+    }
+});
+
+document.getElementById('emojiBtn')?.addEventListener('click', () => {
+    messageInput.value += '😊';
+    messageInput.focus();
+});
+
+document.querySelectorAll('.close-modal').forEach(btn => {
+    btn.addEventListener('click', () => {
+        btn.closest('.modal')?.classList.remove('active');
+    });
+});
 
 function escapeHtml(text) {
     const div = document.createElement('div');
@@ -223,139 +376,5 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function initNavigation() {
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const screen = item.dataset.screen;
-            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-            item.classList.add('active');
-            
-            document.querySelectorAll('.chats-screen, .chat-screen, .screen').forEach(s => {
-                s.classList.remove('active');
-            });
-            
-            if (screen === 'chats') {
-                document.getElementById('chatsScreen').classList.add('active');
-            } else if (screen === 'calls') {
-                document.getElementById('callsScreen').classList.add('active');
-            } else if (screen === 'contacts') {
-                document.getElementById('contactsScreen').classList.add('active');
-            } else if (screen === 'settings') {
-                document.getElementById('settingsScreen').classList.add('active');
-            }
-        });
-    });
-}
-
-function initEventListeners() {
-    document.getElementById('backBtn').addEventListener('click', () => {
-        document.querySelector('.chat-screen').classList.remove('active');
-        document.querySelector('.chats-screen').classList.add('active');
-    });
-    
-    document.getElementById('sendMsgBtn').addEventListener('click', sendMessage);
-    document.getElementById('messageInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendMessage();
-    });
-    
-    document.getElementById('newChatHeaderBtn').addEventListener('click', () => {
-        document.getElementById('newChatModal').classList.add('active');
-    });
-    
-    document.getElementById('createNewChat').addEventListener('click', createNewChat);
-    
-    document.querySelectorAll('.btn-cancel, .close-modal').forEach(btn => {
-        btn.addEventListener('click', () => {
-            btn.closest('.modal').classList.remove('active');
-        });
-    });
-    
-    document.querySelectorAll('.avatar-opt').forEach(opt => {
-        opt.addEventListener('click', () => {
-            document.querySelectorAll('.avatar-opt').forEach(o => o.classList.remove('selected'));
-            opt.classList.add('selected');
-        });
-    });
-    
-    document.getElementById('emojiMsgBtn').addEventListener('click', () => {
-        const input = document.getElementById('messageInput');
-        input.value += '😊';
-        input.focus();
-    });
-    
-    document.getElementById('profileAvatar').addEventListener('click', () => {
-        document.getElementById('profileModal').classList.add('active');
-    });
-    
-    document.getElementById('saveProfileBtn').addEventListener('click', () => {
-        const newName = document.getElementById('profileNameInput').value.trim();
-        if (newName) {
-            appData.currentUser = newName;
-            document.getElementById('userName').textContent = newName;
-            document.getElementById('profileName').textContent = newName;
-            saveData();
-        }
-        const theme = document.getElementById('themeSelectModal').value;
-        applyTheme(theme);
-        document.getElementById('profileModal').classList.remove('active');
-    });
-    
-    document.getElementById('themeSetting').addEventListener('click', () => {
-        const newTheme = appData.theme === 'light' ? 'dark' : 'light';
-        applyTheme(newTheme);
-        document.getElementById('themeSelectModal').value = newTheme;
-    });
-    
-    document.getElementById('searchBtn').addEventListener('click', () => {
-        const searchBar = document.getElementById('searchBar');
-        searchBar.style.display = searchBar.style.display === 'none' ? 'flex' : 'none';
-        if (searchBar.style.display === 'flex') {
-            document.getElementById('searchInput').focus();
-        }
-    });
-    
-    document.getElementById('closeSearchBtn').addEventListener('click', () => {
-        document.getElementById('searchBar').style.display = 'none';
-        document.getElementById('searchInput').value = '';
-        renderChatsList();
-    });
-    
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        const container = document.getElementById('chatsList');
-        const filtered = appData.chats.filter(chat => chat.name.toLowerCase().includes(term));
-        container.innerHTML = filtered.map(chat => {
-            const messages = appData.messages[chat.id] || [];
-            const lastMsg = messages[messages.length - 1];
-            return `
-                <div class="chat-item" data-chat-id="${chat.id}">
-                    <div class="chat-avatar">${chat.avatar}</div>
-                    <div class="chat-info">
-                        <div class="chat-name">${escapeHtml(chat.name)}</div>
-                        <div class="chat-last-message">${lastMsg ? escapeHtml(lastMsg.text) : 'Нет сообщений'}</div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-        document.querySelectorAll('.chat-item').forEach(el => {
-            el.addEventListener('click', () => openChat(el.dataset.chatId));
-        });
-    });
-    
-    document.getElementById('attachMsgBtn').addEventListener('click', () => {
-        alert('📎 Функция прикрепления файлов скоро появится!');
-    });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadData();
-    initNavigation();
-    initEventListeners();
-    
-    const firstAvatar = document.querySelector('.avatar-opt');
-    if (firstAvatar) firstAvatar.classList.add('selected');
-    
-    document.getElementById('themeSelectModal').value = appData.theme;
-    
-    console.log('🌟 Aurum Messenger запущен!');
-});
+// Сообщения
+window.playAudio = (url) => new Audio(url).play();
