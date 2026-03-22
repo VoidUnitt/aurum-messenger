@@ -10,45 +10,145 @@ body {
     overflow: hidden;
 }
 
-/* Основное приложение */
 .app {
     height: 100vh;
     display: flex;
     flex-direction: column;
     background: #fff;
+    position: relative;
 }
 
-.main-content {
+/* Экраны */
+.screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#mainScreen {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+}
+
+.main-container {
     flex: 1;
     overflow: hidden;
     position: relative;
 }
 
-/* Экраны */
-.chats-screen, .chat-screen, .screen {
+/* Панели */
+.chats-panel, .chat-panel, .search-panel, .panel {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     background: #fff;
-    transform: translateX(100%);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     transition: transform 0.3s ease;
-    overflow-y: auto;
 }
 
-.chats-screen.active, .chat-screen.active, .screen.active {
-    transform: translateX(0);
+/* Авторизация */
+.auth-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #0088cc, #0066a0);
+}
+
+.auth-logo {
+    text-align: center;
+    margin-bottom: 40px;
+    color: white;
+}
+
+.auth-logo i {
+    font-size: 60px;
+    margin-bottom: 10px;
+}
+
+.auth-logo h1 {
+    font-size: 36px;
+    font-weight: 600;
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 30px;
+    padding: 4px;
+}
+
+.auth-tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    color: white;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.auth-tab.active {
+    background: white;
+    color: #0088cc;
+}
+
+.auth-form {
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-form.active {
+    display: flex;
+}
+
+.auth-form input {
+    padding: 15px;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    background: white;
+    outline: none;
+}
+
+.auth-form button {
+    padding: 15px;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    background: #ffaa00;
+    color: #333;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.auth-form button:hover {
+    transform: scale(1.02);
 }
 
 /* Хедер */
 .header {
+    padding: 16px;
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    background: #fff;
-    border-bottom: 1px solid #e9ecef;
+    flex-shrink: 0;
 }
 
 .header-left {
@@ -58,96 +158,75 @@ body {
 }
 
 .avatar {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
-    background: #0088cc;
+    background: linear-gradient(135deg, #0088cc, #0066a0);
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-}
-
-.avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    font-size: 22px;
+    color: white;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
 .user-name {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 600;
 }
 
 .header-right {
     display: flex;
-    gap: 16px;
+    gap: 8px;
 }
 
-.header-btn {
+.icon-btn {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 22px;
     cursor: pointer;
-    color: #0088cc;
     padding: 8px;
+    color: #0088cc;
+    border-radius: 50%;
+    transition: background 0.2s;
 }
 
-/* Поиск */
-.search-bar {
-    display: flex;
-    align-items: center;
-    padding: 8px 16px;
-    background: #fff;
-    gap: 12px;
-    border-bottom: 1px solid #e9ecef;
+.icon-btn:hover {
+    background: #f0f0f0;
 }
 
-.search-bar i {
-    color: #8e8e93;
-}
-
-.search-bar input {
-    flex: 1;
-    border: none;
-    padding: 10px 0;
-    font-size: 16px;
-    outline: none;
-    background: transparent;
-}
-
-.search-bar button {
+.back-btn {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 24px;
     cursor: pointer;
-    color: #8e8e93;
+    padding: 8px;
+    color: #0088cc;
+    border-radius: 50%;
 }
 
-/* Список чатов */
-.chats-list {
+/* Списки */
+.chats-list, .contacts-list, .settings-list, .search-results {
+    flex: 1;
     overflow-y: auto;
 }
 
-.chat-item {
+.chat-item, .contact-item, .setting-item {
     display: flex;
     align-items: center;
     padding: 12px 16px;
     gap: 12px;
     cursor: pointer;
-    transition: background 0.2s;
     border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
 }
 
-.chat-item:hover {
+.chat-item:hover, .contact-item:hover, .setting-item:hover {
     background: #f8f9fa;
 }
 
-.chat-item:active {
-    background: #e9ecef;
-}
-
-.chat-avatar {
+.chat-avatar, .contact-avatar {
     width: 52px;
     height: 52px;
     border-radius: 50%;
@@ -160,18 +239,18 @@ body {
     flex-shrink: 0;
 }
 
-.chat-info {
+.chat-info, .contact-info {
     flex: 1;
     min-width: 0;
 }
 
-.chat-name {
+.chat-name, .contact-name {
     font-weight: 500;
-    font-size: 16px;
     margin-bottom: 4px;
+    font-size: 16px;
 }
 
-.chat-last-message {
+.chat-last-message, .contact-status {
     font-size: 13px;
     color: #8e8e93;
     white-space: nowrap;
@@ -185,7 +264,7 @@ body {
     flex-shrink: 0;
 }
 
-/* Экран чата */
+/* Чат */
 .chat-header {
     display: flex;
     align-items: center;
@@ -193,58 +272,35 @@ body {
     background: #fff;
     border-bottom: 1px solid #e9ecef;
     gap: 12px;
+    flex-shrink: 0;
 }
 
-.back-btn {
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 8px;
-    color: #0088cc;
-}
-
-.chat-header-info {
+.chat-info {
     flex: 1;
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.chat-header-avatar {
+.chat-avatar {
     width: 44px;
     height: 44px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #0088cc, #0066a0);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: white;
+    font-size: 20px;
 }
 
-.chat-header-name {
+.chat-name {
     font-weight: 600;
     font-size: 17px;
 }
 
-.chat-header-status {
+.chat-status {
     font-size: 12px;
     color: #4caf50;
 }
 
-.chat-header-actions {
+.chat-actions {
     display: flex;
     gap: 8px;
-}
-
-.chat-action-btn {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 8px;
-    color: #0088cc;
 }
 
 /* Сообщения */
@@ -261,29 +317,12 @@ body {
     gap: 8px;
 }
 
-.empty-chat {
-    text-align: center;
-    padding: 60px 20px;
-    color: #8e8e93;
-}
-
-.empty-chat i {
-    font-size: 48px;
-    margin-bottom: 16px;
-    color: #c7c7cc;
-}
-
 .message {
     max-width: 75%;
     padding: 10px 14px;
     border-radius: 18px;
     word-wrap: break-word;
     animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 .message-outgoing {
@@ -295,9 +334,10 @@ body {
 
 .message-incoming {
     align-self: flex-start;
-    background: #e9ecef;
+    background: white;
     color: #000;
     border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .message-text {
@@ -312,6 +352,11 @@ body {
     text-align: right;
 }
 
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* Область ввода */
 .input-area {
     display: flex;
@@ -319,16 +364,8 @@ body {
     padding: 12px 16px;
     background: #fff;
     border-top: 1px solid #e9ecef;
-    gap: 12px;
-}
-
-.attach-btn, .send-btn, .emoji-btn {
-    background: none;
-    border: none;
-    font-size: 22px;
-    cursor: pointer;
-    padding: 8px;
-    color: #0088cc;
+    gap: 8px;
+    flex-shrink: 0;
 }
 
 .message-input-wrapper {
@@ -349,6 +386,21 @@ body {
     background: transparent;
 }
 
+.emoji-btn, .send-btn {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 8px;
+    color: #0088cc;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.emoji-btn:hover, .send-btn:hover {
+    background: #f0f0f0;
+}
+
 /* Нижняя навигация */
 .bottom-nav {
     display: flex;
@@ -356,9 +408,10 @@ body {
     border-top: 1px solid #e9ecef;
     padding: 8px 16px;
     justify-content: space-around;
+    flex-shrink: 0;
 }
 
-.nav-item {
+.nav-btn {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -371,128 +424,42 @@ body {
     transition: color 0.2s;
 }
 
-.nav-item i {
+.nav-btn i {
     font-size: 22px;
 }
 
-.nav-item span {
+.nav-btn span {
     font-size: 11px;
 }
 
-.nav-item.active {
-    color: #0088cc;
-}
-
-/* Экраны настроек, контактов, звонков */
-.screen {
-    background: #fff;
-}
-
-.screen-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.screen-header h2 {
-    font-size: 20px;
-    font-weight: 600;
-}
-
-.add-contact-btn {
-    background: none;
-    border: none;
-    font-size: 22px;
-    color: #0088cc;
-    cursor: pointer;
-    padding: 8px;
-}
-
-.contacts-list, .calls-list {
-    overflow-y: auto;
-}
-
-.contact-item, .call-item {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    gap: 12px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.contact-avatar, .call-avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #0088cc, #0066a0);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: white;
-}
-
-.contact-info, .call-info {
-    flex: 1;
-}
-
-.contact-name, .call-name {
-    font-weight: 500;
-    margin-bottom: 4px;
-}
-
-.contact-status, .call-time {
-    font-size: 12px;
-    color: #8e8e93;
-}
-
-.call-type {
-    width: 32px;
-    text-align: center;
-}
-
-.call-type.incoming {
-    color: #4caf50;
-}
-
-.call-type.outgoing {
+.nav-btn.active {
     color: #0088cc;
 }
 
 /* Настройки */
-.settings-list {
-    overflow-y: auto;
-}
-
-.settings-item {
+.setting-item {
     display: flex;
     align-items: center;
-    padding: 12px 16px;
-    gap: 12px;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 16px;
+    gap: 16px;
     cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
 }
 
-.settings-icon {
-    width: 32px;
-    color: #0088cc;
+.setting-item i:first-child {
+    width: 28px;
     font-size: 20px;
+    color: #0088cc;
 }
 
-.settings-info {
+.setting-item span:first-of-type {
     flex: 1;
-}
-
-.settings-title {
     font-weight: 500;
-    margin-bottom: 4px;
 }
 
-.settings-sub {
-    font-size: 13px;
+.setting-item span:last-of-type {
     color: #8e8e93;
+    font-size: 14px;
 }
 
 /* Модалки */
@@ -513,107 +480,112 @@ body {
     display: flex;
 }
 
-.modal-content {
+.modal-content, .call-modal-content {
     background: #fff;
-    border-radius: 20px;
+    border-radius: 24px;
     width: 90%;
-    max-width: 340px;
-    overflow: hidden;
+    max-width: 320px;
+    padding: 24px;
+    text-align: center;
 }
 
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
-    border-bottom: 1px solid #e9ecef;
+.modal-content h3 {
+    margin-bottom: 20px;
+    font-size: 20px;
 }
 
-.modal-body {
-    padding: 20px;
-}
-
-.modal-body input, .modal-body select {
+.modal-content input {
     width: 100%;
     padding: 12px;
+    margin: 8px 0;
     border: 1px solid #e9ecef;
     border-radius: 12px;
     font-size: 16px;
-    margin-bottom: 16px;
+    outline: none;
 }
 
-.modal-footer {
-    display: flex;
-    gap: 12px;
-    padding: 16px;
-    border-top: 1px solid #e9ecef;
+.modal-content input:focus {
+    border-color: #0088cc;
 }
 
-.modal-footer button {
-    flex: 1;
+.modal-content button {
     padding: 12px;
+    margin: 8px 0;
     border: none;
-    border-radius: 12px;
+    border-radius: 25px;
     font-size: 16px;
     cursor: pointer;
+    width: 100%;
+    font-weight: 500;
 }
 
-.btn-cancel {
-    background: #f0f0f0;
-}
-
-.btn-create, .btn-save {
+#findUserBtn, #saveNameBtn, #addThisContact {
     background: #0088cc;
-    color: white;
-}
-
-.avatar-options {
-    display: flex;
-    gap: 12px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-}
-
-.avatar-opt {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: #0088cc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.avatar-opt.selected {
-    border: 3px solid #0088cc;
-    transform: scale(1.05);
-}
-
-.profile-avatar-large {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.large-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: #0088cc;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
     color: white;
 }
 
 .close-modal {
-    background: none;
-    border: none;
+    background: #f0f0f0;
+    color: #333;
+}
+
+#foundUser {
+    margin: 10px 0;
+}
+
+/* Звонки */
+.call-modal-content {
+    text-align: center;
+    background: #1c1c1e;
+    color: white;
+}
+
+.call-modal-content div:first-child {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.call-modal-content #callName {
     font-size: 24px;
-    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.call-modal-content #callStatus {
+    font-size: 14px;
     color: #8e8e93;
+    margin-bottom: 30px;
+}
+
+#endCallBtn {
+    background: #ff3b30;
+    color: white;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    font-size: 28px;
+    border: none;
+    cursor: pointer;
+    margin: 0 auto;
+}
+
+/* Поиск */
+.search-panel .header {
+    display: flex;
+    gap: 12px;
+}
+
+.search-panel .header input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #e9ecef;
+    border-radius: 30px;
+    font-size: 16px;
+    outline: none;
+}
+
+.search-panel .header input:focus {
+    border-color: #0088cc;
 }
 
 /* Тёмная тема */
@@ -622,53 +594,51 @@ body.dark {
 }
 
 body.dark .app,
-body.dark .chats-screen,
-body.dark .chat-screen,
-body.dark .screen,
+body.dark .chats-panel,
+body.dark .chat-panel,
+body.dark .panel,
 body.dark .header,
 body.dark .chat-header,
 body.dark .bottom-nav,
-body.dark .messages-container,
-body.dark .input-area,
-body.dark .modal-content {
+body.dark .modal-content,
+body.dark .messages-container {
     background: #1c1c1e;
 }
 
 body.dark .chat-item,
 body.dark .contact-item,
-body.dark .call-item,
-body.dark .settings-item {
+body.dark .setting-item {
     border-bottom-color: #2c2c2e;
 }
 
-body.dark .chat-item:hover {
+body.dark .chat-item:hover,
+body.dark .contact-item:hover,
+body.dark .setting-item:hover {
     background: #2c2c2e;
 }
 
 body.dark .chat-name,
-body.dark .user-name,
-body.dark .chat-header-name,
-body.dark .settings-title,
 body.dark .contact-name,
-body.dark .call-name {
+body.dark .user-name,
+body.dark .chat-name,
+body.dark .setting-item span {
     color: #fff;
 }
 
 body.dark .chat-last-message,
-body.dark .chat-time,
-body.dark .settings-sub,
 body.dark .contact-status,
-body.dark .call-time {
+body.dark .chat-time,
+body.dark .setting-item span:last-of-type {
     color: #8e8e93;
+}
+
+body.dark .messages-container {
+    background: #000;
 }
 
 body.dark .message-incoming {
     background: #2c2c2e;
     color: #fff;
-}
-
-body.dark .message-outgoing {
-    background: #0088cc;
 }
 
 body.dark .message-input-wrapper {
@@ -688,11 +658,57 @@ body.dark .chat-header {
     border-bottom-color: #2c2c2e;
 }
 
-body.dark .search-bar {
-    border-bottom-color: #2c2c2e;
-    background: #1c1c1e;
+body.dark .bottom-nav {
+    border-top-color: #2c2c2e;
 }
 
-body.dark .search-bar input {
+body.dark .icon-btn,
+body.dark .emoji-btn,
+body.dark .send-btn,
+body.dark .back-btn {
+    color: #0088cc;
+}
+
+body.dark .icon-btn:hover,
+body.dark .emoji-btn:hover,
+body.dark .send-btn:hover,
+body.dark .back-btn:hover {
+    background: #2c2c2e;
+}
+
+body.dark .modal-content {
+    background: #1c1c1e;
     color: #fff;
+}
+
+body.dark .modal-content input {
+    background: #2c2c2e;
+    border-color: #3c3c3e;
+    color: #fff;
+}
+
+body.dark .close-modal {
+    background: #2c2c2e;
+    color: #fff;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .message {
+        max-width: 85%;
+    }
+    
+    .chat-avatar, .contact-avatar {
+        width: 48px;
+        height: 48px;
+        font-size: 22px;
+    }
+    
+    .header {
+        padding: 12px;
+    }
+    
+    .user-name {
+        font-size: 18px;
+    }
 }
