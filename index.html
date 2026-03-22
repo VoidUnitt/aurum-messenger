@@ -2,194 +2,89 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0a0e1a">
-    <title>Aurum</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Aurum | Мессенджер</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="dark">
+<body>
     <div class="app">
         <!-- Экран авторизации -->
         <div class="screen" id="authScreen">
-            <div class="auth-container">
-                <div class="auth-logo">
-                    <i class="fas fa-crown"></i>
+            <div class="auth-card">
+                <div class="logo">
+                    <i class="logo-icon">✨</i>
                     <h1>Aurum</h1>
                     <p>защищённый мессенджер</p>
                 </div>
                 
-                <div class="auth-tabs">
-                    <button class="auth-tab active" data-tab="login">Вход</button>
-                    <button class="auth-tab" data-tab="register">Регистрация</button>
+                <div class="tabs">
+                    <button class="tab active" data-tab="login">Вход</button>
+                    <button class="tab" data-tab="register">Регистрация</button>
                 </div>
                 
-                <div class="auth-form active" id="loginForm">
-                    <input type="text" id="loginPhone" placeholder="Email">
+                <div class="form active" id="loginForm">
+                    <input type="email" id="loginEmail" placeholder="Email">
                     <input type="password" id="loginPassword" placeholder="Пароль">
                     <button id="loginBtn">Войти</button>
                 </div>
                 
-                <div class="auth-form" id="registerForm">
+                <div class="form" id="registerForm">
                     <input type="text" id="regName" placeholder="Ваше имя">
-                    <input type="text" id="regPhone" placeholder="Email">
+                    <input type="email" id="regEmail" placeholder="Email">
                     <input type="password" id="regPassword" placeholder="Пароль">
                     <button id="registerBtn">Создать аккаунт</button>
                 </div>
+                
+                <div id="authMessage"></div>
             </div>
         </div>
-
-        <!-- Основной интерфейс -->
+        
+        <!-- Основной экран (после входа) -->
         <div class="screen" id="mainScreen" style="display: none;">
             <div class="main-container">
-                <!-- Чаты -->
-                <div class="panel active" id="chatsPanel">
-                    <div class="header">
-                        <div class="avatar" id="profileAvatar">A</div>
-                        <span class="user-name" id="userName">Загрузка...</span>
-                        <div class="header-actions">
-                            <button class="icon-btn" id="newGroupBtn"><i class="fas fa-users"></i></button>
-                            <button class="icon-btn" id="newChatBtn"><i class="fas fa-plus"></i></button>
-                        </div>
+                <!-- Боковая панель (чаты) -->
+                <div class="sidebar">
+                    <div class="sidebar-header">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-name" id="userName">Загрузка...</div>
+                        <button class="icon-btn" id="logoutMainBtn">🚪</button>
                     </div>
-                    <div class="search-bar">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchChats" placeholder="Поиск">
+                    
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Поиск...">
                     </div>
-                    <div class="chats-list" id="chatsList"></div>
+                    
+                    <div class="chats-list" id="chatsList">
+                        <div class="empty-state">Нет чатов</div>
+                    </div>
                 </div>
-
-                <!-- Чат -->
-                <div class="panel" id="chatPanel">
+                
+                <!-- Область чата -->
+                <div class="chat-area">
                     <div class="chat-header">
-                        <button class="back-btn" id="backToChats"><i class="fas fa-arrow-left"></i></button>
                         <div class="chat-user">
                             <div class="chat-avatar" id="chatAvatar">👤</div>
                             <div>
-                                <div class="chat-name" id="chatName">Чат</div>
-                                <div class="chat-status" id="chatStatus">в сети</div>
+                                <div class="chat-name" id="chatName">Выберите чат</div>
+                                <div class="chat-status" id="chatStatus">онлайн</div>
                             </div>
                         </div>
-                        <div class="chat-actions">
-                            <button class="icon-btn" id="audioCallBtn"><i class="fas fa-phone"></i></button>
-                            <button class="icon-btn" id="videoCallBtn"><i class="fas fa-video"></i></button>
-                        </div>
                     </div>
+                    
                     <div class="messages-container" id="messagesContainer">
-                        <div class="messages" id="messages"></div>
+                        <div class="messages" id="messages">
+                            <div class="empty-chat">Выберите чат чтобы начать общение</div>
+                        </div>
                     </div>
+                    
                     <div class="input-area">
-                        <button class="attach-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
-                        <button class="voice-btn" id="voiceBtn"><i class="fas fa-microphone"></i></button>
-                        <div class="message-input-wrapper">
-                            <input type="text" id="messageInput" placeholder="Сообщение">
-                        </div>
-                        <button class="send-btn" id="sendBtn">
-                            <i class="fas fa-arrow-up"></i>
-                        </button>
-                    </div>
-                    <div class="voice-recording" id="voiceRecording" style="display: none;">
-                        <div class="recording-wave">
-                            <span></span><span></span><span></span><span></span><span></span>
-                        </div>
-                        <span>Запись...</span>
-                        <button id="stopRecordingBtn"><i class="fas fa-stop"></i></button>
-                    </div>
-                </div>
-
-                <!-- Контакты -->
-                <div class="panel" id="contactsPanel">
-                    <div class="header">
-                        <span class="panel-title">Контакты</span>
-                        <button class="icon-btn" id="addContactBtn"><i class="fas fa-plus"></i></button>
-                    </div>
-                    <div class="contacts-list" id="contactsList"></div>
-                </div>
-
-                <!-- Настройки -->
-                <div class="panel" id="settingsPanel">
-                    <div class="header">
-                        <span class="panel-title">Настройки</span>
-                    </div>
-                    <div class="settings-list">
-                        <div class="setting-item" id="editProfileBtn">
-                            <i class="fas fa-user"></i>
-                            <span>Имя профиля</span>
-                            <span id="profileName">Загрузка...</span>
-                        </div>
-                        <div class="setting-item" id="notificationsBtn">
-                            <i class="fas fa-bell"></i>
-                            <span>Уведомления</span>
-                            <span id="notificationsStatus">Вкл</span>
-                        </div>
-                        <div class="setting-item" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Выйти</span>
-                        </div>
+                        <input type="text" id="messageInput" placeholder="Сообщение">
+                        <button id="sendBtn">📤</button>
                     </div>
                 </div>
             </div>
-
-            <!-- Нижняя навигация -->
-            <div class="bottom-nav">
-                <button class="nav-btn active" data-panel="chats">
-                    <i class="fas fa-comment"></i>
-                </button>
-                <button class="nav-btn" data-panel="contacts">
-                    <i class="fas fa-address-book"></i>
-                </button>
-                <button class="nav-btn" data-panel="settings">
-                    <i class="fas fa-user"></i>
-                </button>
-            </div>
         </div>
     </div>
-
-    <!-- Модалка нового чата -->
-    <div class="modal" id="newChatModal">
-        <div class="modal-content">
-            <h3>Новый чат</h3>
-            <input type="text" id="contactPhone" placeholder="Email пользователя">
-            <button id="findUserBtn">Найти</button>
-            <div id="foundUser"></div>
-            <button class="close-modal">Отмена</button>
-        </div>
-    </div>
-
-    <!-- Модалка новой группы -->
-    <div class="modal" id="newGroupModal">
-        <div class="modal-content">
-            <h3>Создать группу</h3>
-            <input type="text" id="groupName" placeholder="Название группы">
-            <input type="text" id="groupMembers" placeholder="Emails участников (через запятую)">
-            <button id="createGroupBtn">Создать</button>
-            <button class="close-modal">Отмена</button>
-        </div>
-    </div>
-
-    <!-- Модалка профиля -->
-    <div class="modal" id="profileModal">
-        <div class="modal-content">
-            <h3>Редактировать</h3>
-            <input type="text" id="editName" placeholder="Ваше имя">
-            <button id="saveNameBtn">Сохранить</button>
-            <button class="close-modal">Отмена</button>
-        </div>
-    </div>
-
-    <!-- Модалка звонка -->
-    <div class="modal" id="callModal">
-        <div class="call-modal-content">
-            <div id="callAvatar">📞</div>
-            <div id="callName"></div>
-            <div id="callStatus">Вызов...</div>
-            <div id="callTimer">00:00</div>
-            <button id="endCallBtn"><i class="fas fa-phone-slash"></i></button>
-        </div>
-    </div>
-
-    <audio id="notificationSound" src="https://www.soundjay.com/misc/sounds/notification-01.mp3"></audio>
-    <audio id="ringtone" src="https://www.soundjay.com/phone/phone-ring-01a.mp3"></audio>
 
     <script type="module" src="script.js"></script>
 </body>
