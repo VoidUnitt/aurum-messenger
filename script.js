@@ -1,65 +1,69 @@
-// Aurum Messenger - Основной функционал
+// Aurum Messenger - Telegram стиль
 
-// Данные приложения
 let appData = {
-    currentUser: 'Aurum User',
+    currentUser: 'Алексей',
     currentChat: null,
     theme: 'light',
     chats: [],
-    messages: {}
+    messages: {},
+    contacts: []
 };
 
-// Загрузка сохранённых данных
 function loadData() {
     const saved = localStorage.getItem('aurum_data');
     if (saved) {
         appData = JSON.parse(saved);
         applyTheme(appData.theme);
-        document.getElementById('settingsUsername').value = appData.currentUser;
-        document.getElementById('username').textContent = appData.currentUser;
+        document.getElementById('userName').textContent = appData.currentUser;
+        document.getElementById('profileName').textContent = appData.currentUser;
+        document.getElementById('profileNameInput').value = appData.currentUser;
     } else {
-        // Демо чаты
         appData.chats = [
-            { id: '1', name: 'Алексей', avatar: '👤', lastMessage: 'Привет!', timestamp: Date.now() },
-            { id: '2', name: 'Мария', avatar: '⭐', lastMessage: 'Как дела?', timestamp: Date.now() - 3600000 },
-            { id: '3', name: 'Дмитрий', avatar: '🔥', lastMessage: 'Отлично!', timestamp: Date.now() - 7200000 }
+            { id: '1', name: 'Анна', avatar: '👩', lastMessage: 'Привет! Как дела?', timestamp: Date.now() },
+            { id: '2', name: 'Максим', avatar: '👨', lastMessage: 'Скинь фото', timestamp: Date.now() - 3600000 },
+            { id: '3', name: 'Елена', avatar: '👩‍💼', lastMessage: 'Встреча в 15:00', timestamp: Date.now() - 7200000 }
         ];
         appData.messages = {
             '1': [
-                { id: 'm1', text: 'Привет! Как дела?', sender: 'incoming', time: Date.now() - 86400000 },
-                { id: 'm2', text: 'Привет! Всё отлично, спасибо!', sender: 'outgoing', time: Date.now() - 86400000 + 300000 }
+                { id: 'm1', text: 'Привет! Как дела?', sender: 'incoming', time: Date.now() - 3600000 },
+                { id: 'm2', text: 'Привет! Всё отлично!', sender: 'outgoing', time: Date.now() - 3500000 }
             ],
             '2': [
-                { id: 'm3', text: 'Доброе утро!', sender: 'incoming', time: Date.now() - 43200000 }
+                { id: 'm3', text: 'Привет!', sender: 'incoming', time: Date.now() - 7200000 }
             ],
             '3': [
-                { id: 'm4', text: 'Когда встретимся?', sender: 'incoming', time: Date.now() - 7200000 }
+                { id: 'm4', text: 'Доброе утро!', sender: 'incoming', time: Date.now() - 86400000 }
             ]
         };
+        appData.contacts = [
+            { id: 'c1', name: 'Анна', avatar: '👩', status: 'online' },
+            { id: 'c2', name: 'Максим', avatar: '👨', status: 'был недавно' },
+            { id: 'c3', name: 'Елена', avatar: '👩‍💼', status: 'была вчера' }
+        ];
         saveData();
     }
     renderChatsList();
+    renderContactsList();
 }
 
-// Сохранение данных
 function saveData() {
     localStorage.setItem('aurum_data', JSON.stringify(appData));
 }
 
-// Применение темы
 function applyTheme(theme) {
     document.body.className = theme;
     appData.theme = theme;
+    const themeLabel = document.getElementById('themeLabel');
+    if (themeLabel) {
+        themeLabel.textContent = theme === 'light' ? 'Светлая тема' : 'Тёмная тема';
+    }
     saveData();
 }
 
-// Форматирование времени
 function formatTime(timestamp) {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// Форматирование даты для последнего сообщения
 function formatDate(timestamp) {
     const date = new Date(timestamp);
     const today = new Date();
@@ -69,66 +73,65 @@ function formatDate(timestamp) {
     return date.toLocaleDateString([], { day: '2-digit', month: '2-digit' });
 }
 
-// Рендер списка чатов
 function renderChatsList() {
     const container = document.getElementById('chatsList');
-    const searchTerm = document.getElementById('searchChats').value.toLowerCase();
+    if (!container) return;
     
-    let filteredChats = appData.chats;
-    if (searchTerm) {
-        filteredChats = appData.chats.filter(chat => 
-            chat.name.toLowerCase().includes(searchTerm)
-        );
-    }
-    
-    container.innerHTML = filteredChats.map(chat => {
-        const lastMsg = appData.messages[chat.id]?.slice(-1)[0];
+    container.innerHTML = appData.chats.map(chat => {
+        const messages = appData.messages[chat.id] || [];
+        const lastMsg = messages[messages.length - 1];
         return `
-            <div class="chat-item ${appData.currentChat === chat.id ? 'active' : ''}" data-chat-id="${chat.id}">
-                <div class="chat-avatar-small">${chat.avatar}</div>
+            <div class="chat-item" data-chat-id="${chat.id}">
+                <div class="chat-avatar">${chat.avatar}</div>
                 <div class="chat-info">
                     <div class="chat-name">${escapeHtml(chat.name)}</div>
-                    <div class="last-message">${lastMsg ? escapeHtml(lastMsg.text) : 'Нет сообщений'}</div>
+                    <div class="chat-last-message">${lastMsg ? escapeHtml(lastMsg.text) : 'Нет сообщений'}</div>
                 </div>
                 <div class="chat-time">${lastMsg ? formatDate(lastMsg.time) : ''}</div>
             </div>
         `;
     }).join('');
     
-    // Добавляем обработчики
     document.querySelectorAll('.chat-item').forEach(el => {
         el.addEventListener('click', () => openChat(el.dataset.chatId));
     });
 }
 
-// Открытие чата
+function renderContactsList() {
+    const container = document.getElementById('contactsList');
+    if (!container) return;
+    
+    container.innerHTML = appData.contacts.map(contact => `
+        <div class="contact-item">
+            <div class="contact-avatar">${contact.avatar}</div>
+            <div class="contact-info">
+                <div class="contact-name">${escapeHtml(contact.name)}</div>
+                <div class="contact-status">${contact.status}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
 function openChat(chatId) {
     appData.currentChat = chatId;
     const chat = appData.chats.find(c => c.id === chatId);
     if (chat) {
-        document.getElementById('chatName').textContent = chat.name;
-        document.getElementById('chatAvatar').innerHTML = chat.avatar;
-        document.getElementById('chatStatus').innerHTML = '<span class="status-dot"></span><span>онлайн</span>';
+        document.getElementById('chatHeaderAvatar').innerHTML = chat.avatar;
+        document.getElementById('chatHeaderName').textContent = chat.name;
+        document.getElementById('chatHeaderStatus').innerHTML = '<span style="color:#4caf50">●</span> в сети';
     }
     renderMessages();
-    renderChatsList();
+    
+    document.querySelector('.chats-screen').classList.remove('active');
+    document.querySelector('.chat-screen').classList.add('active');
 }
 
-// Рендер сообщений
 function renderMessages() {
     const container = document.getElementById('messages');
     const messages = appData.messages[appData.currentChat] || [];
     
     if (messages.length === 0) {
-        container.innerHTML = `
-            <div class="welcome-screen">
-                <div class="welcome-icon">
-                    <i class="fas fa-comment-dots"></i>
-                </div>
-                <p>Нет сообщений</p>
-                <p class="welcome-hint">Напишите первое сообщение!</p>
-            </div>
-        `;
+        container.innerHTML = '<div class="empty-chat"><i class="fas fa-comments"></i><p>Нет сообщений</p></div>';
         return;
     }
     
@@ -139,12 +142,10 @@ function renderMessages() {
         </div>
     `).join('');
     
-    // Прокрутка вниз
     const messagesContainer = document.getElementById('messagesContainer');
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Отправка сообщения
 function sendMessage() {
     const input = document.getElementById('messageInput');
     const text = input.value.trim();
@@ -163,7 +164,6 @@ function sendMessage() {
     }
     appData.messages[appData.currentChat].push(newMessage);
     
-    // Обновляем последнее сообщение в чате
     const chat = appData.chats.find(c => c.id === appData.currentChat);
     if (chat) {
         chat.lastMessage = text;
@@ -175,16 +175,16 @@ function sendMessage() {
     renderChatsList();
     input.value = '';
     
-    // Эффект "печатает"
+    // Автоответ
     setTimeout(() => {
         if (appData.currentChat) {
-            const autoReply = {
+            const reply = {
                 id: Date.now().toString(),
-                text: 'Сообщение получено! ✨',
+                text: 'Сообщение доставлено ✨',
                 sender: 'incoming',
                 time: Date.now()
             };
-            appData.messages[appData.currentChat].push(autoReply);
+            appData.messages[appData.currentChat].push(reply);
             saveData();
             renderMessages();
             renderChatsList();
@@ -192,8 +192,7 @@ function sendMessage() {
     }, 1000);
 }
 
-// Создание нового чата
-function createChat() {
+function createNewChat() {
     const name = document.getElementById('newChatName').value.trim();
     if (!name) return;
     
@@ -208,92 +207,69 @@ function createChat() {
         timestamp: Date.now()
     };
     
-    appData.chats.push(newChat);
+    appData.chats.unshift(newChat);
     appData.messages[newChat.id] = [];
     saveData();
     renderChatsList();
     
-    // Закрыть модалку
     document.getElementById('newChatModal').classList.remove('active');
     document.getElementById('newChatName').value = '';
-    
-    // Открыть новый чат
     openChat(newChat.id);
 }
 
-// Экранирование HTML
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// Открытие модального окна
-function openModal(modalId) {
-    document.getElementById(modalId).classList.add('active');
+function initNavigation() {
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const screen = item.dataset.screen;
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+            
+            document.querySelectorAll('.chats-screen, .chat-screen, .screen').forEach(s => {
+                s.classList.remove('active');
+            });
+            
+            if (screen === 'chats') {
+                document.getElementById('chatsScreen').classList.add('active');
+            } else if (screen === 'calls') {
+                document.getElementById('callsScreen').classList.add('active');
+            } else if (screen === 'contacts') {
+                document.getElementById('contactsScreen').classList.add('active');
+            } else if (screen === 'settings') {
+                document.getElementById('settingsScreen').classList.add('active');
+            }
+        });
+    });
 }
 
-function closeModal(modalId) {
-    document.getElementById(modalId).classList.remove('active');
-}
-
-// Инициализация обработчиков
 function initEventListeners() {
-    // Отправка сообщения
-    document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('backBtn').addEventListener('click', () => {
+        document.querySelector('.chat-screen').classList.remove('active');
+        document.querySelector('.chats-screen').classList.add('active');
+    });
+    
+    document.getElementById('sendMsgBtn').addEventListener('click', sendMessage);
     document.getElementById('messageInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
     
-    // Новый чат
-    document.getElementById('newChatBtn').addEventListener('click', () => openModal('newChatModal'));
-    document.getElementById('createChatBtn').addEventListener('click', createChat);
-    document.getElementById('cancelChatBtn').addEventListener('click', () => closeModal('newChatModal'));
-    
-    // Настройки
-    document.getElementById('settingsBtn').addEventListener('click', () => openModal('settingsModal'));
-    document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-        const newName = document.getElementById('settingsUsername').value.trim();
-        if (newName) {
-            appData.currentUser = newName;
-            document.getElementById('username').textContent = newName;
-            saveData();
-        }
-        const theme = document.getElementById('themeSelect').value;
-        applyTheme(theme);
-        closeModal('settingsModal');
+    document.getElementById('newChatHeaderBtn').addEventListener('click', () => {
+        document.getElementById('newChatModal').classList.add('active');
     });
     
-    // Информация о чате
-    document.getElementById('chatInfoBtn').addEventListener('click', () => {
-        if (appData.currentChat) {
-            const chat = appData.chats.find(c => c.id === appData.currentChat);
-            if (chat) {
-                document.getElementById('chatInfoBody').innerHTML = `
-                    <div style="text-align: center">
-                        <div style="font-size: 48px; margin-bottom: 15px">${chat.avatar}</div>
-                        <h3>${escapeHtml(chat.name)}</h3>
-                        <p style="color: #4caf50; margin-top: 10px">● Онлайн</p>
-                        <hr style="margin: 20px 0">
-                        <p>Сообщений: ${(appData.messages[chat.id] || []).length}</p>
-                    </div>
-                `;
-                openModal('chatInfoModal');
-            }
-        }
-    });
+    document.getElementById('createNewChat').addEventListener('click', createNewChat);
     
-    // Поиск чатов
-    document.getElementById('searchChats').addEventListener('input', () => renderChatsList());
-    
-    // Закрытие модалок
-    document.querySelectorAll('.close-modal').forEach(btn => {
+    document.querySelectorAll('.btn-cancel, .close-modal').forEach(btn => {
         btn.addEventListener('click', () => {
             btn.closest('.modal').classList.remove('active');
         });
     });
     
-    // Выбор аватара
     document.querySelectorAll('.avatar-opt').forEach(opt => {
         opt.addEventListener('click', () => {
             document.querySelectorAll('.avatar-opt').forEach(o => o.classList.remove('selected'));
@@ -301,25 +277,85 @@ function initEventListeners() {
         });
     });
     
-    // Эмодзи (простой вариант)
-    document.getElementById('emojiBtn').addEventListener('click', () => {
+    document.getElementById('emojiMsgBtn').addEventListener('click', () => {
         const input = document.getElementById('messageInput');
         input.value += '😊';
         input.focus();
     });
+    
+    document.getElementById('profileAvatar').addEventListener('click', () => {
+        document.getElementById('profileModal').classList.add('active');
+    });
+    
+    document.getElementById('saveProfileBtn').addEventListener('click', () => {
+        const newName = document.getElementById('profileNameInput').value.trim();
+        if (newName) {
+            appData.currentUser = newName;
+            document.getElementById('userName').textContent = newName;
+            document.getElementById('profileName').textContent = newName;
+            saveData();
+        }
+        const theme = document.getElementById('themeSelectModal').value;
+        applyTheme(theme);
+        document.getElementById('profileModal').classList.remove('active');
+    });
+    
+    document.getElementById('themeSetting').addEventListener('click', () => {
+        const newTheme = appData.theme === 'light' ? 'dark' : 'light';
+        applyTheme(newTheme);
+        document.getElementById('themeSelectModal').value = newTheme;
+    });
+    
+    document.getElementById('searchBtn').addEventListener('click', () => {
+        const searchBar = document.getElementById('searchBar');
+        searchBar.style.display = searchBar.style.display === 'none' ? 'flex' : 'none';
+        if (searchBar.style.display === 'flex') {
+            document.getElementById('searchInput').focus();
+        }
+    });
+    
+    document.getElementById('closeSearchBtn').addEventListener('click', () => {
+        document.getElementById('searchBar').style.display = 'none';
+        document.getElementById('searchInput').value = '';
+        renderChatsList();
+    });
+    
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const container = document.getElementById('chatsList');
+        const filtered = appData.chats.filter(chat => chat.name.toLowerCase().includes(term));
+        container.innerHTML = filtered.map(chat => {
+            const messages = appData.messages[chat.id] || [];
+            const lastMsg = messages[messages.length - 1];
+            return `
+                <div class="chat-item" data-chat-id="${chat.id}">
+                    <div class="chat-avatar">${chat.avatar}</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${escapeHtml(chat.name)}</div>
+                        <div class="chat-last-message">${lastMsg ? escapeHtml(lastMsg.text) : 'Нет сообщений'}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        document.querySelectorAll('.chat-item').forEach(el => {
+            el.addEventListener('click', () => openChat(el.dataset.chatId));
+        });
+    });
+    
+    document.getElementById('attachMsgBtn').addEventListener('click', () => {
+        alert('📎 Функция прикрепления файлов скоро появится!');
+    });
 }
 
-// Запуск приложения
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
+    initNavigation();
     initEventListeners();
     
-    // Выбор первого аватара по умолчанию
     const firstAvatar = document.querySelector('.avatar-opt');
     if (firstAvatar) firstAvatar.classList.add('selected');
     
-    // Устанавливаем тему в селекте
-    document.getElementById('themeSelect').value = appData.theme;
+    document.getElementById('themeSelectModal').value = appData.theme;
     
     console.log('🌟 Aurum Messenger запущен!');
 });
