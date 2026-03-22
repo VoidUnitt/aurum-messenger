@@ -2,16 +2,173 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#f5a623">
     <title>Aurum | Золотой мессенджер</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <div class="container">
-        <h1>🌟 Aurum Messenger</h1>
-        <p>Современный мессенджер с полным набором функций</p>
-        <p>Скоро здесь будет полноценное приложение!</p>
+    <div class="app-container">
+        <!-- Боковая панель с чатами -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <div class="avatar" id="userAvatar">
+                        <span>👤</span>
+                    </div>
+                    <div class="user-details">
+                        <span id="username">Aurum User</span>
+                        <span class="user-status">онлайн</span>
+                    </div>
+                </div>
+                <button class="settings-btn" id="settingsBtn">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+            
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Поиск чатов..." id="searchChats">
+            </div>
+            
+            <div class="chats-list" id="chatsList">
+                <!-- Чаты будут добавляться сюда -->
+            </div>
+            
+            <div class="sidebar-footer">
+                <button class="new-chat-btn" id="newChatBtn">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Новый чат</span>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Основная область чата -->
+        <main class="chat-area" id="chatArea">
+            <div class="chat-header" id="chatHeader">
+                <div class="chat-info">
+                    <div class="chat-avatar" id="chatAvatar">
+                        <i class="fas fa-comment-dots"></i>
+                    </div>
+                    <div class="chat-details">
+                        <h3 id="chatName">Aurum</h3>
+                        <div class="chat-status" id="chatStatus">
+                            <span class="status-dot"></span>
+                            <span>выберите чат</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button class="action-btn" id="searchMsgBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="action-btn" id="chatInfoBtn">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="messages" id="messages">
+                    <div class="welcome-screen">
+                        <div class="welcome-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <h2>Aurum Messenger</h2>
+                        <p>Золотой стандарт общения</p>
+                        <p class="welcome-hint">✨ Выберите чат или создайте новый ✨</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-area" id="inputArea">
+                <div class="input-tools">
+                    <button class="tool-btn" id="emojiBtn">
+                        <i class="far fa-smile-wink"></i>
+                    </button>
+                    <button class="tool-btn" id="attachBtn">
+                        <i class="fas fa-paperclip"></i>
+                    </button>
+                </div>
+                <div class="message-input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Сообщение..." autocomplete="off">
+                    <button class="send-btn" id="sendBtn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
     </div>
+    
+    <!-- Модальное окно нового чата -->
+    <div class="modal" id="newChatModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Новый чат</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="newChatName" placeholder="Имя контакта">
+                <div class="avatar-picker">
+                    <label>Выберите иконку:</label>
+                    <div class="avatar-options">
+                        <div class="avatar-opt" data-emoji="👤">👤</div>
+                        <div class="avatar-opt" data-emoji="⭐">⭐</div>
+                        <div class="avatar-opt" data-emoji="🔥">🔥</div>
+                        <div class="avatar-opt" data-emoji="💎">💎</div>
+                        <div class="avatar-opt" data-emoji="🌟">🌟</div>
+                        <div class="avatar-opt" data-emoji="🎨">🎨</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" id="cancelChatBtn">Отмена</button>
+                <button class="btn-create" id="createChatBtn">Создать</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно настроек -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sliders-h"></i> Настройки</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label>Ваше имя:</label>
+                    <input type="text" id="settingsUsername" placeholder="Введите имя">
+                </div>
+                <div class="setting-item">
+                    <label>Тема:</label>
+                    <select id="themeSelect">
+                        <option value="light">☀️ Светлая</option>
+                        <option value="dark">🌙 Тёмная</option>
+                        <option value="gold">✨ Золотая</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-save" id="saveSettingsBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно информации о чате -->
+    <div class="modal" id="chatInfoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Информация</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" id="chatInfoBody">
+                <!-- Информация о чате будет здесь -->
+            </div>
+        </div>
+    </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
