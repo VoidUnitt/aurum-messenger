@@ -25,14 +25,14 @@
                 </div>
                 
                 <div class="auth-form active" id="loginForm">
-                    <input type="text" id="loginPhone" placeholder="Email или телефон">
+                    <input type="text" id="loginPhone" placeholder="Email">
                     <input type="password" id="loginPassword" placeholder="Пароль">
                     <button id="loginBtn">Войти</button>
                 </div>
                 
                 <div class="auth-form" id="registerForm">
                     <input type="text" id="regName" placeholder="Ваше имя">
-                    <input type="text" id="regPhone" placeholder="Email или телефон">
+                    <input type="text" id="regPhone" placeholder="Email">
                     <input type="password" id="regPassword" placeholder="Пароль">
                     <button id="registerBtn">Создать аккаунт</button>
                 </div>
@@ -48,6 +48,7 @@
                         <div class="avatar" id="profileAvatar">A</div>
                         <span class="user-name" id="userName">Загрузка...</span>
                         <div class="header-actions">
+                            <button class="icon-btn" id="newGroupBtn"><i class="fas fa-users"></i></button>
                             <button class="icon-btn" id="newChatBtn"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
@@ -69,15 +70,30 @@
                                 <div class="chat-status" id="chatStatus">в сети</div>
                             </div>
                         </div>
+                        <div class="chat-actions">
+                            <button class="icon-btn" id="audioCallBtn"><i class="fas fa-phone"></i></button>
+                            <button class="icon-btn" id="videoCallBtn"><i class="fas fa-video"></i></button>
+                        </div>
                     </div>
                     <div class="messages-container" id="messagesContainer">
                         <div class="messages" id="messages"></div>
                     </div>
                     <div class="input-area">
-                        <input type="text" id="messageInput" placeholder="Сообщение">
+                        <button class="attach-btn" id="attachBtn"><i class="fas fa-paperclip"></i></button>
+                        <button class="voice-btn" id="voiceBtn"><i class="fas fa-microphone"></i></button>
+                        <div class="message-input-wrapper">
+                            <input type="text" id="messageInput" placeholder="Сообщение">
+                        </div>
                         <button class="send-btn" id="sendBtn">
                             <i class="fas fa-arrow-up"></i>
                         </button>
+                    </div>
+                    <div class="voice-recording" id="voiceRecording" style="display: none;">
+                        <div class="recording-wave">
+                            <span></span><span></span><span></span><span></span><span></span>
+                        </div>
+                        <span>Запись...</span>
+                        <button id="stopRecordingBtn"><i class="fas fa-stop"></i></button>
                     </div>
                 </div>
 
@@ -100,6 +116,11 @@
                             <i class="fas fa-user"></i>
                             <span>Имя профиля</span>
                             <span id="profileName">Загрузка...</span>
+                        </div>
+                        <div class="setting-item" id="notificationsBtn">
+                            <i class="fas fa-bell"></i>
+                            <span>Уведомления</span>
+                            <span id="notificationsStatus">Вкл</span>
                         </div>
                         <div class="setting-item" id="logoutBtn">
                             <i class="fas fa-sign-out-alt"></i>
@@ -128,9 +149,20 @@
     <div class="modal" id="newChatModal">
         <div class="modal-content">
             <h3>Новый чат</h3>
-            <input type="text" id="contactPhone" placeholder="Email или телефон">
+            <input type="text" id="contactPhone" placeholder="Email пользователя">
             <button id="findUserBtn">Найти</button>
             <div id="foundUser"></div>
+            <button class="close-modal">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Модалка новой группы -->
+    <div class="modal" id="newGroupModal">
+        <div class="modal-content">
+            <h3>Создать группу</h3>
+            <input type="text" id="groupName" placeholder="Название группы">
+            <input type="text" id="groupMembers" placeholder="Emails участников (через запятую)">
+            <button id="createGroupBtn">Создать</button>
             <button class="close-modal">Отмена</button>
         </div>
     </div>
@@ -144,6 +176,20 @@
             <button class="close-modal">Отмена</button>
         </div>
     </div>
+
+    <!-- Модалка звонка -->
+    <div class="modal" id="callModal">
+        <div class="call-modal-content">
+            <div id="callAvatar">📞</div>
+            <div id="callName"></div>
+            <div id="callStatus">Вызов...</div>
+            <div id="callTimer">00:00</div>
+            <button id="endCallBtn"><i class="fas fa-phone-slash"></i></button>
+        </div>
+    </div>
+
+    <audio id="notificationSound" src="https://www.soundjay.com/misc/sounds/notification-01.mp3"></audio>
+    <audio id="ringtone" src="https://www.soundjay.com/phone/phone-ring-01a.mp3"></audio>
 
     <script type="module" src="script.js"></script>
 </body>
